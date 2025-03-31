@@ -6,9 +6,12 @@ from datetime import datetime
 from typing import List, Union
 import pandas as pd
 from PyQt6 import QtWidgets, uic
-
+import json
 # Suppress specific warnings related to pandas
 warnings.filterwarnings("ignore", category=UserWarning, module="pandas")
+
+with open("config.json", "r") as file:
+    config = json.load(file)
 
 
 def date_converter(date_string: str) -> str:
@@ -35,9 +38,8 @@ class Helpers:
                             directory_path:
                             str) -> Union[List[str], bool]:
         """Return a list of company folders in the specified directory."""
-        directory_path = os.path.join(directory_path,
-                                      "bank_recon"
-                                      )
+        directory_path = (config.get("databases", {})
+                          .get("CURRENT", directory_path))
         return (
             [
                 d
@@ -108,9 +110,8 @@ class Ui(QtWidgets.QMainWindow):
         self.progressBar.setVisible(True)
         self.progressBar.setValue(10)
         company = self.company_box.currentText()
-        directory_path = os.path.join(
-            self.drive_combo_box.currentText(), "bank_recon", company
-        )
+        directory_path = (config.get("databases", {}).
+                          get(company, self.drive_combo_box.currentText()))
 
         handler = MainHandler(start, end, company, directory_path)
         handler.run()
